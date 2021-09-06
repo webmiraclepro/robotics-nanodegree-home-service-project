@@ -44,7 +44,7 @@ int main(int argc, char** argv){
     goal.target_pose.header.stamp = ros::Time::now();
 
     
-    // Define a position to be 1 meter in front of the robot
+    // Define a pickup position 
     goal.target_pose.pose.position.x = -2.0;
     goal.target_pose.pose.position.y = 1.5;
     goal.target_pose.pose.orientation.w = 1.0;
@@ -54,7 +54,7 @@ int main(int argc, char** argv){
     // wait for 5 seconds
     ros::Duration(5.0).sleep();
 
-    // Define another position to be 1 meter to the right of the robot
+    // Define a dropoff position
     goal.target_pose.pose.position.x = 3.0;
     goal.target_pose.pose.position.y = 2.5;
     goToGoal(ac, goal);
