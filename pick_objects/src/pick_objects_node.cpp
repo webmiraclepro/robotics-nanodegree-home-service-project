@@ -16,6 +16,7 @@ int goToGoal(MoveBaseClient &ac, move_base_msgs::MoveBaseGoal &goal) {
     // Check to see if the result is a success
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
         ROS_INFO("Hooray, the base moved to the goal");
+        ROS_INFO("Goal position: %f, %f", goal.target_pose.pose.position.x, goal.target_pose.pose.position.y);
         return 0;
     }
     else {
@@ -28,6 +29,8 @@ int goToGoal(MoveBaseClient &ac, move_base_msgs::MoveBaseGoal &goal) {
 
 int main(int argc, char** argv){
     ros::init(argc, argv, "pick_objects");
+    ros::NodeHandle nh;
+    std::string node_name = ros::this_node::getName();
 
     //tell the action client that we want to spin a thread by default
     MoveBaseClient ac("move_base", true);
@@ -44,10 +47,12 @@ int main(int argc, char** argv){
     goal.target_pose.header.stamp = ros::Time::now();
 
     
-    // Define a pickup position 
-    goal.target_pose.pose.position.x = -2.0;
-    goal.target_pose.pose.position.y = 1.5;
+    // Define a pickup position
+    nh.getParam(node_name + "/pickup_point_x", goal.target_pose.pose.position.x);
+    nh.getParam(node_name + "/pickup_point_y", goal.target_pose.pose.position.y);
+
     goal.target_pose.pose.orientation.w = 1.0;
+
 
     goToGoal(ac, goal);
 
@@ -55,9 +60,11 @@ int main(int argc, char** argv){
     ros::Duration(5.0).sleep();
 
     // Define a dropoff position
-    goal.target_pose.pose.position.x = 3.0;
-    goal.target_pose.pose.position.y = 2.5;
+    nh.getParam(node_name + "/dropoff_point_x", goal.target_pose.pose.position.x);
+    nh.getParam(node_name + "/dropoff_point_y", goal.target_pose.pose.position.y);
+
     goToGoal(ac, goal);
+    ros::Duration(5.0).sleep();
 
     return 0;
 }

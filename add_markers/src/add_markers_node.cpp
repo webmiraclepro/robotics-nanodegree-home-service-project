@@ -9,15 +9,17 @@ struct Point {
 };
 
 enum HomeServiceStatus {
+    SETTING_CARGO,
     LOOKING_FOR_CARGO,
     LOOKING_DESTINATION,
     DROPOFF_CARGO,
+    DONE
 };
 
 
 class MarkerManager {
 private:
-    static const float delta = 0.1;
+    static const float delta = 0.5;
     HomeServiceStatus status;
     Point pickupPoint;
     Point dropoffPoint;
@@ -38,12 +40,18 @@ public:
 };
 
 MarkerManager::MarkerManager(){
-    pickupPoint.x = -2.5;
-    pickupPoint.y = 1.5;
-    dropoffPoint.x = 3.0;
-    dropoffPoint.y = 2.5;
-    status = LOOKING_FOR_CARGO;
+    status = SETTING_CARGO;
     marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 1);
+    std::string node_name = ros::this_node::getName();
+    float x, y;
+
+    nh.getParam(node_name + "/pickup_point_x", pickupPoint.x);
+    nh.getParam(node_name + "/pickup_point_y", pickupPoint.y);
+    nh.getParam(node_name + "/dropoff_point_x", dropoffPoint.x);
+    nh.getParam(node_name + "/dropoff_point_y", dropoffPoint.y);
+
+    ROS_INFO("Pickup point: (%f, %f)", pickupPoint.x, pickupPoint.y);
+
     ros::Rate rate(1);
     ros::Subscriber sub = nh.subscribe("/odom", 1000, &MarkerManager::odometryCallback, this);
 }
@@ -54,6 +62,10 @@ MarkerManager::~MarkerManager(){
 void MarkerManager::odometryCallback(const nav_msgs::Odometry::ConstPtr& msg){
     // check velocity equals 0
     bool is_stop = msg->twist.twist.linear.x == 0 && msg->twist.twist.linear.y == 0;
+    ROS_WARN_ONCE("Odometry callback called!!");
+    if(is_stop){
+        ROS_INFO("[%s] is stopped", ros::this_node::getName().c_str());
+    }
     
     if (is_stop && status == LOOKING_FOR_CARGO){
         // is pickup point with euclidean distance less than delta
@@ -136,6 +148,7 @@ void MarkerManager::removeMarker(){
     marker.action = visualization_msgs::Marker::DELETE;
 
     marker_pub.publish(marker);
+    ROS_INFO("Marker removed");
 }
 
 int MarkerManager::getNumSubscribers(){
@@ -143,11 +156,18 @@ int MarkerManager::getNumSubscribers(){
 }
 
 void MarkerManager::addPickupMarker(){
-    addMarker(pickupPoint);
+    if (status == SETTING_CARGO){
+        addMarker(pickupPoint);
+        ROS_INFO("Pickup marker added");
+        status = LOOKING_FOR_CARGO;
+    }
 }
 
 void MarkerManager::addDropoffMarker(){
-    addMarker(dropoffPoint);
+    if (status == DROPOFF_CARGO){
+        addMarker(dropoffPoint);
+        status = DONE;
+    }
 }
 
 int main(int argc, char **argv) {
@@ -163,9 +183,9 @@ int main(int argc, char **argv) {
             ROS_WARN_ONCE("Please create a subscriber to the marker");
             sleep(1);
         }
-        
+
         marker_manager.addPickupMarker();
-    }   
+    }
 
     return 0;
 }
