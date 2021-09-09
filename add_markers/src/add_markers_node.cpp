@@ -51,9 +51,13 @@ MarkerManager::MarkerManager(){
     nh.getParam(node_name + "/dropoff_point_y", dropoffPoint.y);
 
     ROS_INFO("Pickup point: (%f, %f)", pickupPoint.x, pickupPoint.y);
+    ROS_INFO("Dropoff point: (%f, %f)", dropoffPoint.x, dropoffPoint.y);
 
     ros::Rate rate(1);
-    ros::Subscriber sub = nh.subscribe("/odom", 1000, &MarkerManager::odometryCallback, this);
+    ros::Subscriber sub = nh.subscribe("odom", 1000, &MarkerManager::odometryCallback, this);
+    ROS_INFO("Waiting for odometry data...");
+
+    ros::spinOnce();
 }
 
 MarkerManager::~MarkerManager(){

@@ -53,6 +53,7 @@ int main(int argc, char** argv){
 
     goal.target_pose.pose.orientation.w = 1.0;
 
+    ros::Duration(5.0).sleep();
 
     goToGoal(ac, goal);
 
