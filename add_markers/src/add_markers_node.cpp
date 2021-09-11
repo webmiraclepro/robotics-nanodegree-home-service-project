@@ -19,7 +19,7 @@ enum HomeServiceStatus {
 
 class MarkerManager {
 private:
-    static const float distance_delta = 0.2;
+    static const float distance_delta = 0.5;
     static const float velocity_delta = 0.001;
     HomeServiceStatus status;
     Point pickupPoint;
@@ -30,6 +30,7 @@ private:
     
     void addMarker(Point position);
     void odometryCallback(const nav_msgs::Odometry::ConstPtr& msg);
+    float euclideanDistance(Point p1, Point p2);
 
 public:
     MarkerManager();
@@ -52,9 +53,6 @@ MarkerManager::MarkerManager(){
     nh.getParam(node_name + "/dropoff_point_x", dropoffPoint.x);
     nh.getParam(node_name + "/dropoff_point_y", dropoffPoint.y);
 
-    ROS_INFO("Pickup point: (%f, %f)", pickupPoint.x, pickupPoint.y);
-    ROS_INFO("Dropoff point: (%f, %f)", dropoffPoint.x, dropoffPoint.y);
-
     ros::Rate rate(1);
 
     subscribe();
@@ -66,11 +64,11 @@ MarkerManager::~MarkerManager(){
 void MarkerManager::odometryCallback(const nav_msgs::Odometry::ConstPtr& msg){
     // check velocity equals 0
     bool is_stop = msg->twist.twist.linear.x < velocity_delta;
-    ROS_WARN_ONCE("Odometry callback called!!");
     
     if (is_stop && status == LOOKING_FOR_CARGO){
-        // is pickup point with euclidean distance less than delta
-        float distance = sqrt(pow(pickupPoint.x - msg->pose.pose.position.x, 2) + pow(pickupPoint.y - msg->pose.pose.position.y, 2));
+        Point robotposition = {msg->pose.pose.position.x, msg->pose.pose.position.y};
+        float distance = euclideanDistance(pickupPoint, robotposition);
+        
         if (distance < distance_delta){
             status = LOOKING_DESTINATION;
             ROS_INFO("Cargo Picked up!");
@@ -78,15 +76,22 @@ void MarkerManager::odometryCallback(const nav_msgs::Odometry::ConstPtr& msg){
         }
     }
     else if (is_stop && status == LOOKING_DESTINATION){
-        ROS_WARN_ONCE("robot is close!!");
         // is dropoff point with euclidean distance less than delta
-        float distance = sqrt(pow(dropoffPoint.x - msg->pose.pose.position.x, 2) + pow(dropoffPoint.y - msg->pose.pose.position.y, 2));
+        Point robotposition = {msg->pose.pose.position.x, msg->pose.pose.position.y};
+        
+        float distance = euclideanDistance(dropoffPoint, robotposition);
+
         if (distance < distance_delta){
             status = DROPOFF_CARGO;
             ROS_INFO("Cargo Dropped off!");
             addDropoffMarker();
         }
     }
+}
+
+float MarkerManager::euclideanDistance(Point p1, Point p2){
+    float distance = sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
+    return distance;
 }
 
 void MarkerManager::addMarker(Point position){

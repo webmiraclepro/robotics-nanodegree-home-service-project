@@ -6,7 +6,7 @@
     <rosparam>
       pickup_point_x: -2.0
       pickup_point_y: 1.5
-      dropoff_point_x: 3.0
+      dropoff_point_x: 2.5
       dropoff_point_y: 2.5
     </rosparam>
   </node>
