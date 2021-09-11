@@ -37,6 +37,7 @@ public:
     void addDropoffMarker();
     void removeMarker();
     int getNumSubscribers();
+    void subscribe();
 };
 
 MarkerManager::MarkerManager(){
@@ -54,10 +55,8 @@ MarkerManager::MarkerManager(){
     ROS_INFO("Dropoff point: (%f, %f)", dropoffPoint.x, dropoffPoint.y);
 
     ros::Rate rate(1);
-    ros::Subscriber sub = nh.subscribe("odom", 1000, &MarkerManager::odometryCallback, this);
-    ROS_INFO("Waiting for odometry data...");
 
-    ros::spinOnce();
+    subscribe();
 }
 
 MarkerManager::~MarkerManager(){
@@ -152,7 +151,7 @@ void MarkerManager::removeMarker(){
     marker.action = visualization_msgs::Marker::DELETE;
 
     marker_pub.publish(marker);
-    ROS_INFO("Marker removed");
+    ROS_INFO("Retrieving Cargo!");
 }
 
 int MarkerManager::getNumSubscribers(){
@@ -174,9 +173,18 @@ void MarkerManager::addDropoffMarker(){
     }
 }
 
+void MarkerManager::subscribe(){
+    ros::Subscriber sub = nh.subscribe("odom", 1000, &MarkerManager::odometryCallback, this);
+    ROS_INFO("Waiting for odometry data...");
+    while (ros::ok()){
+        ros::spinOnce();
+    }
+}
+
 int main(int argc, char **argv) {
     ros::init(argc, argv, "add_markers");
     MarkerManager marker_manager;
+    ros::Rate rate(1);
 
     while (ros::ok()) {
         // Publish the marker
@@ -188,8 +196,13 @@ int main(int argc, char **argv) {
             sleep(1);
         }
 
-        marker_manager.addPickupMarker();
+        break;
     }
+
+    marker_manager.addPickupMarker();
+    ros::spinOnce();
+    
+    marker_manager.subscribe();
 
     return 0;
 }
