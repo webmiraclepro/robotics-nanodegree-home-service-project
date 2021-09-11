@@ -65,7 +65,6 @@ int main(int argc, char** argv){
     nh.getParam(node_name + "/dropoff_point_y", goal.target_pose.pose.position.y);
 
     goToGoal(ac, goal);
-    ros::Duration(5.0).sleep();
 
     return 0;
 }

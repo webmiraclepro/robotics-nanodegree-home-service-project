@@ -8,4 +8,3 @@ sleep 5
 xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch pick_objects pick_objects.launch " &
 sleep 5
 xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch add_markers add_markers.launch "
-

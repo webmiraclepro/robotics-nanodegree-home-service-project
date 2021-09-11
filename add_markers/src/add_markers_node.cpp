@@ -19,7 +19,8 @@ enum HomeServiceStatus {
 
 class MarkerManager {
 private:
-    static const float delta = 0.5;
+    static const float distance_delta = 0.2;
+    static const float velocity_delta = 0.001;
     HomeServiceStatus status;
     Point pickupPoint;
     Point dropoffPoint;
@@ -64,25 +65,25 @@ MarkerManager::~MarkerManager(){
 
 void MarkerManager::odometryCallback(const nav_msgs::Odometry::ConstPtr& msg){
     // check velocity equals 0
-    bool is_stop = msg->twist.twist.linear.x == 0 && msg->twist.twist.linear.y == 0;
+    bool is_stop = msg->twist.twist.linear.x < velocity_delta;
     ROS_WARN_ONCE("Odometry callback called!!");
-    if(is_stop){
-        ROS_INFO("[%s] is stopped", ros::this_node::getName().c_str());
-    }
     
     if (is_stop && status == LOOKING_FOR_CARGO){
         // is pickup point with euclidean distance less than delta
         float distance = sqrt(pow(pickupPoint.x - msg->pose.pose.position.x, 2) + pow(pickupPoint.y - msg->pose.pose.position.y, 2));
-        if (distance < delta){
+        if (distance < distance_delta){
             status = LOOKING_DESTINATION;
+            ROS_INFO("Cargo Picked up!");
             removeMarker();
         }
     }
     else if (is_stop && status == LOOKING_DESTINATION){
+        ROS_WARN_ONCE("robot is close!!");
         // is dropoff point with euclidean distance less than delta
         float distance = sqrt(pow(dropoffPoint.x - msg->pose.pose.position.x, 2) + pow(dropoffPoint.y - msg->pose.pose.position.y, 2));
-        if (distance < delta){
+        if (distance < distance_delta){
             status = DROPOFF_CARGO;
+            ROS_INFO("Cargo Dropped off!");
             addDropoffMarker();
         }
     }
@@ -174,11 +175,8 @@ void MarkerManager::addDropoffMarker(){
 }
 
 void MarkerManager::subscribe(){
-    ros::Subscriber sub = nh.subscribe("odom", 1000, &MarkerManager::odometryCallback, this);
+    odom_sub = nh.subscribe("odom", 1000, &MarkerManager::odometryCallback, this);
     ROS_INFO("Waiting for odometry data...");
-    while (ros::ok()){
-        ros::spinOnce();
-    }
 }
 
 int main(int argc, char **argv) {
@@ -196,13 +194,16 @@ int main(int argc, char **argv) {
             sleep(1);
         }
 
+        marker_manager.addPickupMarker();
+        ros::spinOnce();
+
         break;
     }
-
-    marker_manager.addPickupMarker();
-    ros::spinOnce();
     
     marker_manager.subscribe();
+    while (ros::ok()){
+        ros::spin();
+    }
 
     return 0;
 }
