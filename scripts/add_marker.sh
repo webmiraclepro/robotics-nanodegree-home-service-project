@@ -5,4 +5,4 @@ xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch turtlebot_gazebo amcl_
 sleep 5
 xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch turtlebot_rviz_launchers view_navigation.launch " &
 sleep 5
-xterm -e " source ~/catkin_ws/devel/setup.bash; rosrun add_markers add_markers "
+xterm -e " source ~/catkin_ws/devel/setup.bash; rosrun add_markers add_virtual_objects "
