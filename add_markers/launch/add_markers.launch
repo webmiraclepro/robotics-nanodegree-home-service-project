@@ -4,10 +4,12 @@
 <launch>
   <node name="add_markers" pkg="add_markers" type="add_markers" output="screen">
     <rosparam>
-      pickup_point_x: -2.0
-      pickup_point_y: 1.5
-      dropoff_point_x: 2.5
-      dropoff_point_y: 2.5
+      pickup_point_x: -1.0
+      pickup_point_y: -1.0
+      dropoff_point_x: 2.0
+      dropoff_point_y: 3.0
+      robot_pose_x: 2.0
+      robot_pose_y: -1.0
     </rosparam>
   </node>
 </launch>

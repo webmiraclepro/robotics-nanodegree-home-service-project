@@ -19,11 +19,12 @@ enum HomeServiceStatus {
 
 class MarkerManager {
 private:
-    static const float distance_delta = 0.5;
+    static const float distance_delta = 0.6;
     static const float velocity_delta = 0.001;
     HomeServiceStatus status;
     Point pickupPoint;
     Point dropoffPoint;
+    Point robotPointOffset;
     ros::NodeHandle nh;
     ros::Publisher marker_pub;
     ros::Subscriber odom_sub;
@@ -52,6 +53,8 @@ MarkerManager::MarkerManager(){
     nh.getParam(node_name + "/pickup_point_y", pickupPoint.y);
     nh.getParam(node_name + "/dropoff_point_x", dropoffPoint.x);
     nh.getParam(node_name + "/dropoff_point_y", dropoffPoint.y);
+    nh.getParam(node_name + "/robot_pose_x", robotPointOffset.x);
+    nh.getParam(node_name + "/robot_pose_y", robotPointOffset.y);
 
     ros::Rate rate(1);
 
@@ -66,8 +69,15 @@ void MarkerManager::odometryCallback(const nav_msgs::Odometry::ConstPtr& msg){
     bool is_stop = msg->twist.twist.linear.x < velocity_delta;
     
     if (is_stop && status == LOOKING_FOR_CARGO){
-        Point robotposition = {msg->pose.pose.position.x, msg->pose.pose.position.y};
+        Point robotposition = {
+            msg->pose.pose.position.x,
+            msg->pose.pose.position.y
+        };
+        
         float distance = euclideanDistance(pickupPoint, robotposition);
+        ROS_INFO("distance: %f", distance);
+        ROS_INFO("robotposition: %f, %f, %f", robotposition.x, robotposition.y, msg->pose.pose.orientation.z);
+        // ROS_INFO("robotPointOffset: %f, %f", robotPointOffset.x, robotPointOffset.y);
         
         if (distance < distance_delta){
             status = LOOKING_DESTINATION;
