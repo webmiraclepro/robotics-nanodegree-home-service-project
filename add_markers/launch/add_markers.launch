@@ -8,8 +8,10 @@
       pickup_point_y: -1.0
       dropoff_point_x: 2.0
       dropoff_point_y: 3.0
-      robot_pose_x: 2.0
-      robot_pose_y: -1.0
+      real_pickup_point_x: -2.0
+      real_pickup_point_y:  2.0
+      real_dropoff_point_x: 2.5
+      real_dropoff_point_y: 3.0
     </rosparam>
   </node>
 </launch>

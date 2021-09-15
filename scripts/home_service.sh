@@ -3,8 +3,8 @@ xterm -e " source ~/catkin_ws/devel/setup.bash; export ROBOT_INITIAL_POSE=\"-x 1
 sleep 5
 xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch turtlebot_gazebo amcl_demo.launch map_file:=/home/robond/catkin_ws/src/map/map.yaml initial_pose_x:=2 initial_pose_y:=-1 initial_pose_a:=0.785" &
 sleep 5
-xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch turtlebot_rviz_launchers view_navigation.launch "
-# sleep 5
-# xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch pick_objects pick_objects.launch "
-# sleep 5
-# xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch add_markers add_markers.launch "
+xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch turtlebot_rviz_launchers view_navigation.launch " &
+sleep 5
+xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch pick_objects pick_objects.launch " &
+sleep 5
+xterm -e " source ~/catkin_ws/devel/setup.bash; roslaunch add_markers add_markers.launch "
